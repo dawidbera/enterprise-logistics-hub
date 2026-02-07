@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-secret
+  namespace: {{ .Values.namespace }}
+type: Opaque
+stringData:
+  rabbitmq-user: {{ .Values.infrastructure.rabbitmq.user | quote }}
+  rabbitmq-password: {{ .Values.infrastructure.rabbitmq.password | quote }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rabbitmq-pvc
+  namespace: {{ .Values.namespace }}
+spec:
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: {{ .Values.infrastructure.rabbitmq.storage | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+    - port: 5672
+      name: amqp
+    - port: 15672
+      name: management
+  selector:
+    app: rabbitmq
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceName: "rabbitmq"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: rabbitmq
+        image: {{ .Values.infrastructure.rabbitmq.image | quote }}
+        ports:
+        - containerPort: 5672
+          name: amqp
+        - containerPort: 15672
+          name: management
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitmq-user
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitmq-password
+        - name: RABBITMQ_NODENAME
+          value: "rabbit@localhost"
+        - name: RABBITMQ_MNESIA_DIR
+          value: /var/lib/rabbitmq/mnesia
+        resources:
+          {{- toYaml .Values.infrastructure.rabbitmq.resources | nindent 10 }}
+        livenessProbe:
+          exec:
+            command: ["rabbitmq-diagnostics", "check_running"]
+          initialDelaySeconds: 120
+          timeoutSeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command: ["rabbitmq-diagnostics", "check_running"]
+          initialDelaySeconds: 20
+          timeoutSeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - name: rabbitmq-data
+          mountPath: /var/lib/rabbitmq
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.infrastructure.rabbitmq.storage | quote }}

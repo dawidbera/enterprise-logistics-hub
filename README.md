@@ -23,13 +23,21 @@ graph TD
 
 ## Quick Start (Kubernetes / k3s)
 
-We provide a fully automated script to build apps, load images, and deploy the entire stack to a local `k3s` cluster.
+We provide two ways to deploy the stack to a local `k3s` cluster:
 
-1. **Deployment**:
-   ```bash
-   cd enterprise-logistics-hub
-   ./deploy-k3s.sh
-   ```
+### Option A: Helm (Recommended)
+This method uses Helm charts for flexible, parameterized deployment.
+```bash
+cd enterprise-logistics-hub
+./deploy-helm.sh
+```
+
+### Option B: Raw Manifests
+Traditional method using static YAML files.
+```bash
+cd enterprise-logistics-hub
+./deploy-k3s.sh
+```
 
 2. **Verify**:
    The script creates a dedicated namespace `logistics`.

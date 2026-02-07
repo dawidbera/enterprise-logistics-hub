@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-cleanup
+  namespace: {{ .Values.namespace }}
+spec:
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: psql-cleanup
+            image: {{ .Values.infrastructure.postgres.image | quote }}
+            command:
+            - /bin/sh
+            - -c
+            - psql -U $DB_USER -h $DB_HOST -d $DB_NAME -c "DELETE FROM transport_orders WHERE status = 'COMPLETED';"
+            env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config
+                  key: DB_HOST
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: postgres-user
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: postgres-password
+          restartPolicy: OnFailure

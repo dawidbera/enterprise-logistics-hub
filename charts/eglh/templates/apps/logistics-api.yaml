@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: logistics-api
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: logistics-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logistics-api
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.apps.logisticsApi.replicas }}
+  selector:
+    matchLabels:
+      app: logistics-api
+  template:
+    metadata:
+      labels:
+        app: logistics-api
+    spec:
+      serviceAccountName: api-service-account
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 185
+      initContainers:
+      - name: wait-for-infrastructure
+        image: busybox:1.36
+        command: ['sh', '-c', "until nc -zv postgres 5432 && nc -zv rabbitmq 5672; do echo waiting for infra; sleep 2; done"]
+      containers:
+      - name: logistics-api
+        image: {{ .Values.apps.logisticsApi.image | quote }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: DB_HOST
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: DB_NAME
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-password
+        - name: RABBITMQ_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: RABBITMQ_HOST
+        - name: RABBITMQ_USER
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitmq-user
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitmq-password
+        resources:
+          {{- toYaml .Values.apps.logisticsApi.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /q/health/live
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /q/health/ready
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
