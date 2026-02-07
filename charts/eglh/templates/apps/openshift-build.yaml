@@ -34,6 +34,11 @@ spec:
     to:
       kind: ImageStreamTag
       name: logistics-api:latest
+  resources:
+    limits:
+      memory: 2Gi
+    requests:
+      memory: 1Gi
 
 ---
 apiVersion: image.openshift.io/v1
@@ -69,4 +74,9 @@ spec:
     to:
       kind: ImageStreamTag
       name: route-worker:latest
+  resources:
+    limits:
+      memory: 2Gi
+    requests:
+      memory: 1Gi
 {{- end -}}
