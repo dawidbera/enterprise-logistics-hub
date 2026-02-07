@@ -53,8 +53,8 @@ spec:
         runAsNonRoot: true
         {{- if not .Values.openshift.enabled }}
         runAsUser: 999
-        {{- end }}
         fsGroup: 999
+        {{- end }}
       containers:
       - name: postgres
         {{- if .Values.openshift.enabled }}

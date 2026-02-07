@@ -53,8 +53,8 @@ spec:
         runAsNonRoot: true
         {{- if not .Values.openshift.enabled }}
         runAsUser: 1001
-        {{- end }}
         fsGroup: 1001
+        {{- end }}
       containers:
       - name: rabbitmq
         {{- if .Values.openshift.enabled }}
