@@ -20,13 +20,14 @@ public class OrderProcessor {
      * Processes an incoming order message.
      * Updates the status to COMPLETED after simulation of heavy work.
      *
-     * @param orderId the ID of the order to process
+     * @param orderIdStr the ID of the order to process (received as String from RabbitMQ)
      * @throws InterruptedException if the processing is interrupted
      */
     @Incoming("orders-in")
     @Transactional
-    public void process(Long orderId) throws InterruptedException {
-        LOG.infof("Processing order: %d", orderId);
+    public void process(String orderIdStr) throws InterruptedException {
+        LOG.infof("Processing order: %s", orderIdStr);
+        Long orderId = Long.valueOf(orderIdStr);
 
         Order order = Order.findById(orderId);
         if (order == null) {

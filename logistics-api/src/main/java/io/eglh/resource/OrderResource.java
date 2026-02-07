@@ -9,6 +9,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
+import org.eclipse.microprofile.reactive.messaging.OnOverflow;
 
 import java.util.Optional;
 
@@ -22,7 +23,8 @@ import java.util.Optional;
 public class OrderResource {
 
     @Channel("orders-out")
-    Emitter<Long> orderEmitter;
+    @OnOverflow(value = OnOverflow.Strategy.BUFFER, bufferSize = 100)
+    Emitter<String> orderEmitter;
 
     /**
      * Creates a new transport order, persists it to the database,
@@ -40,7 +42,7 @@ public class OrderResource {
         order.status = OrderStatus.PENDING;
         order.persist();
 
-        orderEmitter.send(order.id);
+        orderEmitter.send(order.id.toString());
 
         return Response.status(Response.Status.ACCEPTED).entity(order).build();
     }

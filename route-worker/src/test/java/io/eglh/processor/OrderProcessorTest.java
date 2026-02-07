@@ -32,7 +32,7 @@ public class OrderProcessorTest {
         assertEquals(OrderStatus.PENDING, persistedOrder.status, "Order status should initially be PENDING.");
 
         // When: Call the processor method with the ID of the persisted order.
-        orderProcessor.process(persistedOrder.id);
+        orderProcessor.process(persistedOrder.id.toString());
 
         // Then: Fetch the order again after processing and verify its status.
         Order updatedOrder = Order.findById(persistedOrder.id);
@@ -44,7 +44,7 @@ public class OrderProcessorTest {
     @Transactional // Added @Transactional for the test method that needs it for persistence
     public void testProcessNonExistentOrder() throws Exception {
         // Given
-        Long nonExistentOrderId = 999L;
+        String nonExistentOrderId = "999";
 
         // When: Attempt to process an order ID that does not exist.
         // The orderProcessor.process method should log an error but not crash.
