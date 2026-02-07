@@ -1,0 +1,105 @@
+# This Docker Compose file sets up the local infrastructure for the Enterprise Logistics Hub (EGLH).
+# It includes PostgreSQL for data persistence and RabbitMQ for asynchronous communication.
+#
+# Usage:
+#   docker-compose up -d
+#   docker-compose down
+#
+# Management UI for RabbitMQ: http://localhost:15672 (user/password)
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: eglh-postgres
+    environment:
+      POSTGRES_DB: logistics_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - eglh-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d logistics_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: eglh-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI (Web Console)
+    networks:
+      - eglh-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  logistics-api:
+    build:
+      context: ./logistics-api
+      dockerfile: src/main/docker/Dockerfile.jvm
+    container_name: eglh-api
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    environment:
+      DB_HOST: postgres
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: logistics_db
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: user
+      RABBITMQ_PASSWORD: password
+      JAVA_DEBUG: "true"
+      JAVA_DEBUG_PORT: "*:5005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - eglh-network
+
+  route-worker:
+    build:
+      context: ./route-worker
+      dockerfile: src/main/docker/Dockerfile.jvm
+    container_name: eglh-worker
+    ports:
+      - "5006:5005"
+    environment:
+      DB_HOST: postgres
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: logistics_db
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: user
+      RABBITMQ_PASSWORD: password
+      JAVA_DEBUG: "true"
+      JAVA_DEBUG_PORT: "*:5005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - eglh-network
+
+networks:
+  eglh-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
