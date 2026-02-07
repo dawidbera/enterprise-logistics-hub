@@ -1,0 +1,10 @@
+# Common Configuration for Applications
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-config
+  namespace: default
+data:
+  DB_HOST: "postgres"
+  DB_NAME: "logistics_db"
+  RABBITMQ_HOST: "rabbitmq"
