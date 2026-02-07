@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: route-worker
   namespace: {{ .Release.Namespace }}
+  {{- if .Values.openshift.enabled }}
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"route-worker:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"route-worker\")].image"}]'
+  {{- end }}
 spec:
   replicas: {{ .Values.apps.routeWorker.replicas }}
   selector:

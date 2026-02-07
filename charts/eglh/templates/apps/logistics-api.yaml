@@ -15,6 +15,10 @@ kind: Deployment
 metadata:
   name: logistics-api
   namespace: {{ .Release.Namespace }}
+  {{- if .Values.openshift.enabled }}
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"logistics-api:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"logistics-api\")].image"}]'
+  {{- end }}
 spec:
   replicas: {{ .Values.apps.logisticsApi.replicas }}
   selector:
