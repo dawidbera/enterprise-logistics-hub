@@ -60,4 +60,14 @@ public class OrderResource {
         return order.map(o -> Response.ok(o).build())
                 .orElse(Response.status(Response.Status.NOT_FOUND).build());
     }
+
+    /**
+     * Lists all transport orders from the database.
+     *
+     * @return a list of all orders
+     */
+    @GET
+    public Response listAllOrders() {
+        return Response.ok(Order.listAll()).build();
+    }
 }
