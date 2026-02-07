@@ -3,7 +3,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: pod-reader
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 rules:
 - apiGroups: [""] # "" indicates the core API group
   resources: ["pods"]
@@ -14,11 +14,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: read-pods-binding
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 subjects:
 - kind: ServiceAccount
   name: api-service-account
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
   name: pod-reader

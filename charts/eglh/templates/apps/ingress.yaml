@@ -3,7 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: logistics-ingress
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:

@@ -5,7 +5,7 @@ apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   name: logistics-api
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
   lookupPolicy:
     local: true
@@ -15,20 +15,20 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   name: logistics-api
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
   source:
     type: Git
     git:
       uri: {{ .Values.openshift.build.git.uri }}
       ref: {{ .Values.openshift.build.git.branch }}
-    contextDir: enterprise-logistics-hub/logistics-api
+    contextDir: logistics-api
   strategy:
     type: Source
     sourceStrategy:
       from:
         kind: ImageStreamTag
-        name: java:17
+        name: ubi8-openjdk-17:1.18
         namespace: openshift
   output:
     to:
@@ -40,7 +40,7 @@ apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   name: route-worker
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
   lookupPolicy:
     local: true
@@ -50,20 +50,20 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   name: route-worker
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
   source:
     type: Git
     git:
       uri: {{ .Values.openshift.build.git.uri }}
       ref: {{ .Values.openshift.build.git.branch }}
-    contextDir: enterprise-logistics-hub/route-worker
+    contextDir: route-worker
   strategy:
     type: Source
     sourceStrategy:
       from:
         kind: ImageStreamTag
-        name: java:17
+        name: ubi8-openjdk-17:1.18
         namespace: openshift
   output:
     to:

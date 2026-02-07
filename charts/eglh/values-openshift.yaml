@@ -9,3 +9,7 @@ openshift:
 
 ingress:
   enabled: false # Use OpenShift Routes instead
+
+# Resource Quotas are managed by Sandbox, disable ours
+quota:
+  enabled: false

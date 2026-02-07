@@ -70,6 +70,20 @@ Kubernetes automatically injects environment variables for every Service in a Na
 *   **The Cause**: Erlang is extremely strict about permissions (must be `600`). Kubernetes volume mounts sometimes set default permissions (like `644`) that are too broad.
 *   **The Fix**: Use `fsGroup: 1001` in the `securityContext` to ensure the volume is owned by the correct group. In case of persistent permission corruption on a local cluster (like k3s), deleting the PVC/Namespace and redeploying is often necessary to reset the volume state.
 
+### Multi-Namespace Helm Portability
+*   **The Issue**: Hardcoding `namespace: logistics` in Helm templates caused "Forbidden" errors on OpenShift Sandbox, where users are restricted to a pre-assigned namespace (e.g., `user-dev`).
+*   **The Fix**: Always use `namespace: {{ .Release.Namespace }}`. This allows the Chart to be deployed into any namespace provided via the `--namespace` flag during installation.
+
+### OpenShift Sandbox Restrictions
+*   **The Issue**: Deployment failed when trying to create `ResourceQuota` or `LimitRange`.
+*   **The Cause**: In shared environments like the Developer Sandbox, these cluster-wide resources are managed by administrators and cannot be created by regular users.
+*   **The Fix**: Parameterized these resources in `values.yaml` (e.g., `quota.enabled: false`) to allow disabling them in restricted environments.
+
+### S2I Build Context
+*   **The Issue**: BuildConfig failed with `InvalidContextDirectory`.
+*   **The Cause**: The `contextDir` in a `BuildConfig` is relative to the repository root. 
+*   **The Fix**: Ensure the `contextDir` matches the actual folder structure in Git (e.g., use `logistics-api` instead of `enterprise-logistics-hub/logistics-api` if the former is at the root).
+
 ## Verification Results
 
 ### Stress Test (50 orders)

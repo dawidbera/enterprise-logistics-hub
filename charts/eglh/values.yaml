@@ -1,7 +1,5 @@
 # Default values for eglh chart.
 
-namespace: logistics
-
 # Infrastructure configuration
 infrastructure:
   postgres:
