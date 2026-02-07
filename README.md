@@ -17,6 +17,7 @@ graph TD
     RMQ -- "Consume Message" --> Worker[route-worker]
     Worker -- "Simulate Heavy Work" --> Worker
     Worker -- "Update Status (COMPLETED)" --> DB
+    Client -- "GET /orders" --> API
     Client -- "GET /orders/{id}" --> API
     API -- "Read Status" --> DB
 ```

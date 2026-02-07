@@ -84,6 +84,19 @@ Kubernetes automatically injects environment variables for every Service in a Na
 *   **The Cause**: The `contextDir` in a `BuildConfig` is relative to the repository root. 
 *   **The Fix**: Ensure the `contextDir` matches the actual folder structure in Git (e.g., use `logistics-api` instead of `enterprise-logistics-hub/logistics-api` if the former is at the root).
 
+### Build Memory Limits (Quarkus)
+*   **The Issue**: Build failed with `java.lang.OutOfMemoryError: GC overhead limit exceeded`.
+*   **The Cause**: Quarkus augmentation during Maven build is memory-intensive. OpenShift Sandbox default limits are often too low.
+*   **The Fix**: Explicitly set `resources.limits.memory: 2Gi` in the `BuildConfig`.
+
+### GitOps vs. CI/CD (ArgoCD & OpenShift)
+*   **The Concept**: In this project, ArgoCD manages the **infrastructure state** (Deployments, Services, BuildConfigs). However, the **code build** is triggered by OpenShift (CI).
+*   **The Workflow**: 
+    1. `git push` code changes.
+    2. Run `oc start-build` (or use a Webhook) to build the new image.
+    3. OpenShift's `ImageStream` trigger automatically updates the `Deployment` to use the new image.
+    4. ArgoCD ensures the overall configuration remains consistent.
+
 ## Verification Results
 
 ### Stress Test (50 orders)
