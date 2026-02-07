@@ -17,7 +17,7 @@ if [ -r /etc/rancher/k3s/k3s.yaml ]; then
     HELM="helm"
 else
     KUBECTL="sudo kubectl"
-    HELM="sudo helm"
+    HELM="sudo KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm"
 fi
 
 echo "🚀 Starting Helm deployment to k3s..."
@@ -43,9 +43,10 @@ echo "☸️ Applying Helm chart..."
 # Create namespace if it doesn't exist
 $KUBECTL create namespace $NAMESPACE --dry-run=client -o yaml | $KUBECTL apply -f -
 
-$HELM upgrade --install $RELEASE_NAME ./charts/eglh 
-  --namespace $NAMESPACE 
+$HELM upgrade --install $RELEASE_NAME ./charts/eglh \
+  --namespace $NAMESPACE \
   --create-namespace
 
 echo "✅ Helm deployment finished!"
 echo "📍 Check status with: $KUBECTL get all -n $NAMESPACE"
+echo "🌐 API Ingress Host: eglh.local"

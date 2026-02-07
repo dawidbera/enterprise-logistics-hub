@@ -55,7 +55,7 @@ cd enterprise-logistics-hub
 This project implements advanced Kubernetes concepts required for the CKAD exam and real-world production systems:
 
 - **State & Persistence**: StatefulSets, PersistentVolumeClaims, Headless Services.
-- **Security**: NetworkPolicies, ServiceAccounts, SecurityContext (Non-root), Namespace Isolation.
+- **Security**: NetworkPolicies, ServiceAccounts, RBAC (Roles/RoleBindings), SecurityContext (Non-root), Namespace Isolation.
 - **Scaling & Reliability**: Horizontal Pod Autoscaler (HPA), Liveness/Readiness Probes, Init Containers.
 - **Resource Management**: ResourceQuota, LimitRange.
 - **Maintenance**: CronJobs for database cleanup.

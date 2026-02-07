@@ -22,7 +22,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rabbitmq
+  name: eglh-rabbitmq
   namespace: {{ .Values.namespace }}
 spec:
   ports:
@@ -36,10 +36,10 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: rabbitmq
+  name: eglh-rabbitmq
   namespace: {{ .Values.namespace }}
 spec:
-  serviceName: "rabbitmq"
+  serviceName: "eglh-rabbitmq"
   replicas: 1
   selector:
     matchLabels:

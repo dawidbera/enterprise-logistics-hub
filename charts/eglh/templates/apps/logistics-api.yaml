@@ -32,7 +32,7 @@ spec:
       initContainers:
       - name: wait-for-infrastructure
         image: busybox:1.36
-        command: ['sh', '-c', "until nc -zv postgres 5432 && nc -zv rabbitmq 5672; do echo waiting for infra; sleep 2; done"]
+        command: ['sh', '-c', "until nc -zv postgres 5432 && nc -zv eglh-rabbitmq 5672; do echo waiting for infra; sleep 2; done"]
       containers:
       - name: logistics-api
         image: {{ .Values.apps.logisticsApi.image | quote }}
@@ -65,6 +65,11 @@ spec:
             configMapKeyRef:
               name: common-config
               key: RABBITMQ_HOST
+        - name: RABBIT_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: common-config
+              key: RABBIT_PORT
         - name: RABBITMQ_USER
           valueFrom:
             secretKeyRef:

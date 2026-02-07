@@ -6,4 +6,5 @@ metadata:
 data:
   DB_HOST: "postgres"
   DB_NAME: {{ .Values.infrastructure.postgres.db | quote }}
-  RABBITMQ_HOST: "rabbitmq"
+  RABBITMQ_HOST: "eglh-rabbitmq"
+  RABBIT_PORT: "5672"
