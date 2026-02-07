@@ -52,7 +52,11 @@ spec:
           capabilities:
             drop: ["ALL"]
         {{- end }}
+        {{- if .Values.openshift.enabled }}
+        image: logistics-api:latest
+        {{- else }}
         image: {{ .Values.apps.logisticsApi.image | quote }}
+        {{- end }}
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080

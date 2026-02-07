@@ -39,7 +39,11 @@ spec:
           capabilities:
             drop: ["ALL"]
         {{- end }}
+        {{- if .Values.openshift.enabled }}
+        image: route-worker:latest
+        {{- else }}
         image: {{ .Values.apps.routeWorker.image | quote }}
+        {{- end }}
         imagePullPolicy: IfNotPresent
         env:
         - name: DB_HOST
