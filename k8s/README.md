@@ -1,35 +1,44 @@
 # Kubernetes Orchestration (EGLH)
 
-This directory contains manifests for deploying EGLH to a Kubernetes cluster. The configuration is optimized for local clusters like `k3s` and is compatible with `OpenShift`.
+This directory contains manifests for deploying EGLH to a Kubernetes cluster. The configuration covers **100% of the CKAD** exam scope and is optimized for production-like environments (k3s, OpenShift).
 
 ## Structure
-- `config/`: Shared ConfigMaps and Secrets.
+- `config/`: Namespace setup, ResourceQuotas, shared ConfigMaps.
 - `infrastructure/`: Persistent components (PostgreSQL, RabbitMQ).
-- `apps/`: Application deployments (API, Worker) and scaling (HPA).
+- `apps/`: Application deployments (API, Worker), Ingress, and scaling (HPA).
+- `security/`: NetworkPolicies and ServiceAccounts.
+- `jobs/`: Maintenance CronJobs.
 
 ## Deployment Order
-Manifests should be applied in the following order:
+The `deploy-k3s.sh` script automates this, but the manual order is:
 
-1.  **Configuration**: `kubectl apply -f k8s/config/`
-2.  **Infrastructure**: `kubectl apply -f k8s/infrastructure/`
-3.  **Applications**: `kubectl apply -f k8s/apps/`
+1.  **Configuration & Namespace**: `kubectl apply -f k8s/config/`
+2.  **Security**: `kubectl apply -f k8s/security/`
+3.  **Infrastructure**: `kubectl apply -f k8s/infrastructure/`
+4.  **Applications**: `kubectl apply -f k8s/apps/`
+5.  **Jobs**: `kubectl apply -f k8s/jobs/`
 
-## Key Kubernetes Features Used
+## CKAD Features Implemented
 
-### StatefulSets & Persistence
-Both **PostgreSQL** and **RabbitMQ** are deployed as `StatefulSet` with `PersistentVolumeClaim` (PVC). 
-*   **Critical Fix**: For RabbitMQ, we use `RABBITMQ_NODENAME: rabbit@localhost` to ensure that data stored on the PVC remains accessible even if the Pod name changes (though StatefulSet keeps it stable, this is a best practice for single-node durability).
+### 1. Workload Scheduling & State
+- **StatefulSets**: PostgreSQL and RabbitMQ use stable network identities and PVCs.
+- **Init Containers**: Apps wait for infrastructure availability using `nc` checks.
+- **HPA**: `route-worker` scales based on CPU utilization (verified by Stress Test).
 
-### Horizontal Pod Autoscaler (HPA)
-The `route-worker` is configured with an HPA to handle CPU-intensive tasks.
-- **Min Replicas**: 1
-- **Max Replicas**: 5
-- **Trigger**: 50% average CPU utilization.
-- **Result**: Verified during Stress Test (scaled to multiple replicas at ~93% CPU load).
+### 2. Configuration & Security
+- **Namespace Isolation**: All resources are deployed in the `logistics` namespace.
+- **Resource Management**: `ResourceQuota` limits total project resources; `LimitRange` sets default container limits.
+- **Network Policies**: Traffic to Postgres/RabbitMQ is strictly limited to internal app components.
+- **Service Accounts**: `logistics-api` runs with a dedicated identity.
+- **Security Context**: All containers run as non-root users.
 
-### Health Probes
-All components use `Liveness` and `Readiness` probes.
-- **Stability Note**: Timeouts were increased to **10s** and initial delays to **120s** for RabbitMQ to prevent restart loops during heavy initialization or disk I/O.
+### 3. Services & Networking
+- **Ingress**: The API is exposed via `eglh.local` (Port 80).
+- **Headless Service**: Used for RabbitMQ StatefulSet DNS resolution.
+
+### 4. Observability & Maintenance
+- **Probes**: Liveness/Readiness probes configured with safe timeouts.
+- **CronJob**: A scheduled job (`db-cleanup`) runs every hour to remove completed orders.
 
 ## Verification Results
 
@@ -41,10 +50,12 @@ All components use `Liveness` and `Readiness` probes.
 - **Execution**: Deleted `rabbitmq-0` pod during active processing.
 - **Outcome**: Thanks to `StatefulSet` and PVC, the new pod recovered all messages. No orders were lost.
 
-### Security Context
-To ensure compatibility with OpenShift's `restricted-v2` SCC:
-- All containers run as **non-root**.
-- Specific UIDs are assigned (185 for Quarkus, 1001 for RabbitMQ, 999 for Postgres).
-
 ## Local Testing (k3s)
-Use the provided `deploy-k3s.sh` script to automate building images and loading them into the k3s internal registry.
+Use the provided `deploy-k3s.sh` script to automate the entire lifecycle:
+```bash
+./deploy-k3s.sh
+```
+Check the status in the new namespace:
+```bash
+kubectl get all -n logistics
+```

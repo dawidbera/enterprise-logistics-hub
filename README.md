@@ -1,6 +1,6 @@
 # Enterprise Logistics Hub (EGLH)
 
-A production-like logistics system for processing transport orders, built with Java (Quarkus) and Kubernetes. This project focuses on mastering Kubernetes orchestration, stability, and scaling.
+A production-like logistics system for processing transport orders, built with Java (Quarkus) and Kubernetes. This project serves as a comprehensive **CKAD (Certified Kubernetes Application Developer)** study case, covering 100% of the exam scope.
 
 ## Core Architecture
 - **`logistics-api`**: Entry point for receiving orders.
@@ -21,35 +21,9 @@ graph TD
     API -- "Read Status" --> DB
 ```
 
-### Order Lifecycle
-```mermaid
-stateDiagram-v2
-    [*] --> PENDING: API creates order
-    PENDING --> PROCESSING: Worker starts work
-    PROCESSING --> COMPLETED: Calculation finished
-    COMPLETED --> [*]
-```
+## Quick Start (Kubernetes / k3s)
 
-## Quick Start (Local Docker Compose)
-
-1. **Build and Start**:
-   ```bash
-   cd enterprise-logistics-hub
-   docker-compose up -d --build
-   ```
-
-2. **Test the Flow**:
-   ```bash
-   # Create an order
-   curl -X POST -H "Content-Type: application/json" -d '{"origin": "Warsaw", "destination": "Berlin"}' http://localhost:8080/orders
-
-   # Check status (Wait ~6 seconds for processing)
-   curl http://localhost:8080/orders/1
-   ```
-
-## Kubernetes (k3s)
-
-We provide automated manifests and a deployment script for local K8s testing.
+We provide a fully automated script to build apps, load images, and deploy the entire stack to a local `k3s` cluster.
 
 1. **Deployment**:
    ```bash
@@ -58,21 +32,30 @@ We provide automated manifests and a deployment script for local K8s testing.
    ```
 
 2. **Verify**:
+   The script creates a dedicated namespace `logistics`.
    ```bash
-   kubectl get pods
-   kubectl get hpa
+   kubectl get all -n logistics
    ```
 
-For detailed Kubernetes documentation, see [k8s/README.md](k8s/README.md).
+3. **Access API**:
+   You can access the API via Ingress (add `127.0.0.1 eglh.local` to `/etc/hosts`) or Port Forward:
+   ```bash
+   kubectl port-forward -n logistics service/logistics-api 8080:8080
+   ```
 
-## Project Structure
-- `logistics-api/`: Quarkus REST API.
-- `route-worker/`: Quarkus worker processing RabbitMQ messages.
-- `k8s/`: Kubernetes manifests (Infrastructure, Config, Apps).
-- `docker-compose.yaml`: Local development environment.
+## CKAD Mastery Features
+This project implements advanced Kubernetes concepts required for the CKAD exam and real-world production systems:
 
-## Key Features
-- **Persistence**: PostgreSQL and RabbitMQ use StatefulSets with PVC.
-- **Scaling**: Horizontal Pod Autoscaler (HPA) for the worker based on CPU usage.
-- **Reliability**: Liveness and Readiness probes for all components.
-- **Security**: Non-root container execution (UID 185/1001/999).
+- **State & Persistence**: StatefulSets, PersistentVolumeClaims, Headless Services.
+- **Security**: NetworkPolicies, ServiceAccounts, SecurityContext (Non-root), Namespace Isolation.
+- **Scaling & Reliability**: Horizontal Pod Autoscaler (HPA), Liveness/Readiness Probes, Init Containers.
+- **Resource Management**: ResourceQuota, LimitRange.
+- **Maintenance**: CronJobs for database cleanup.
+
+For detailed technical documentation and manifest explanation, see [k8s/README.md](k8s/README.md).
+
+## Local Development (Docker Compose)
+For quick local testing without Kubernetes:
+```bash
+docker-compose up -d --build
+```

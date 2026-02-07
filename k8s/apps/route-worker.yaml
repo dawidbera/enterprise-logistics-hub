@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: route-worker
-  namespace: default
+  namespace: logistics
 spec:
   replicas: 1
   selector:
@@ -18,6 +18,10 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 185 # Standard UID for Quarkus UBI image
+      initContainers:
+      - name: wait-for-infrastructure
+        image: busybox:1.36
+        command: ['sh', '-c', "until nc -zv postgres 5432 && nc -zv rabbitmq 5672; do echo waiting for infra; sleep 2; done"]
       containers:
       - name: route-worker
         image: route-worker:latest # Needs to be built and available in K8s
@@ -83,7 +87,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: route-worker-hpa
-  namespace: default
+  namespace: logistics
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

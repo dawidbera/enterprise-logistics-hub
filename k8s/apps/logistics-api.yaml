@@ -4,7 +4,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: logistics-api
-  namespace: default
+  namespace: logistics
 spec:
   ports:
     - port: 8080
@@ -17,7 +17,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: logistics-api
-  namespace: default
+  namespace: logistics
 spec:
   replicas: 2
   selector:
@@ -28,9 +28,14 @@ spec:
       labels:
         app: logistics-api
     spec:
+      serviceAccountName: api-service-account
       securityContext:
         runAsNonRoot: true
         runAsUser: 185 # Standard UID for Quarkus UBI image
+      initContainers:
+      - name: wait-for-infrastructure
+        image: busybox:1.36
+        command: ['sh', '-c', "until nc -zv postgres 5432 && nc -zv rabbitmq 5672; do echo waiting for infra; sleep 2; done"]
       containers:
       - name: logistics-api
         image: logistics-api:latest # Needs to be built and available in K8s
