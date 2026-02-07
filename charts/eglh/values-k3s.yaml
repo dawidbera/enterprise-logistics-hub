@@ -1,0 +1,7 @@
+# Values for local k3s development
+openshift:
+  enabled: false
+
+ingress:
+  enabled: true
+  host: eglh.local

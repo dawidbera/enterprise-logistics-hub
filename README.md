@@ -51,6 +51,16 @@ cd enterprise-logistics-hub
    kubectl port-forward -n logistics service/logistics-api 8080:8080
    ```
 
+## GitOps & Automation (ArgoCD)
+The project is structured to support GitOps workflows using ArgoCD:
+
+- **Environment Separation**: Use `values-k3s.yaml` for local development and `values-openshift.yaml` for enterprise environments.
+- **Continuous Deployment**: Apply the ArgoCD manifest to automate synchronization between Git and the cluster:
+  ```bash
+  kubectl apply -f argocd/eglh-app.yaml
+  ```
+- **Enterprise Ready**: Manifests are compliant with OpenShift's `restricted-v2` SCC profile.
+
 ## CKAD Mastery Features
 This project implements advanced Kubernetes concepts required for the CKAD exam and real-world production systems:
 

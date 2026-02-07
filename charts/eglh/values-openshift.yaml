@@ -1,0 +1,11 @@
+# Values for OpenShift Sandbox
+openshift:
+  enabled: true
+  build:
+    enabled: true
+    git:
+      uri: https://github.com/dawidbera/enterprise-logistics-hub.git
+      branch: main
+
+ingress:
+  enabled: false # Use OpenShift Routes instead
