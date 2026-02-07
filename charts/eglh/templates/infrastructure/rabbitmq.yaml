@@ -51,10 +51,20 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
+        {{- if not .Values.openshift.enabled }}
         runAsUser: 1001
+        {{- end }}
         fsGroup: 1001
       containers:
       - name: rabbitmq
+        {{- if .Values.openshift.enabled }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
+        {{- end }}
         image: {{ .Values.infrastructure.rabbitmq.image | quote }}
         ports:
         - containerPort: 5672

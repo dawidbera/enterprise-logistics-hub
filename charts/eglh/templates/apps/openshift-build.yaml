@@ -1,0 +1,72 @@
+{{- if and .Values.openshift.enabled .Values.openshift.build.enabled -}}
+# OpenShift Build Configuration (S2I)
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: logistics-api
+  namespace: {{ .Values.namespace }}
+spec:
+  lookupPolicy:
+    local: true
+
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: logistics-api
+  namespace: {{ .Values.namespace }}
+spec:
+  source:
+    type: Git
+    git:
+      uri: {{ .Values.openshift.build.git.uri }}
+      ref: {{ .Values.openshift.build.git.branch }}
+    contextDir: enterprise-logistics-hub/logistics-api
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: java:17
+        namespace: openshift
+  output:
+    to:
+      kind: ImageStreamTag
+      name: logistics-api:latest
+
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: route-worker
+  namespace: {{ .Values.namespace }}
+spec:
+  lookupPolicy:
+    local: true
+
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: route-worker
+  namespace: {{ .Values.namespace }}
+spec:
+  source:
+    type: Git
+    git:
+      uri: {{ .Values.openshift.build.git.uri }}
+      ref: {{ .Values.openshift.build.git.branch }}
+    contextDir: enterprise-logistics-hub/route-worker
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: java:17
+        namespace: openshift
+  output:
+    to:
+      kind: ImageStreamTag
+      name: route-worker:latest
+{{- end -}}

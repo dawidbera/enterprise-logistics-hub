@@ -48,10 +48,15 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1001
         fsGroup: 1001
       containers:
       - name: rabbitmq
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
         image: rabbitmq:3.12-management-alpine
         ports:
         - containerPort: 5672

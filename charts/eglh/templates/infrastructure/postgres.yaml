@@ -51,10 +51,20 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
+        {{- if not .Values.openshift.enabled }}
         runAsUser: 999
+        {{- end }}
         fsGroup: 999
       containers:
       - name: postgres
+        {{- if .Values.openshift.enabled }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
+        {{- end }}
         image: {{ .Values.infrastructure.postgres.image | quote }}
         ports:
         - containerPort: 5432

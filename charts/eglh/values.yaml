@@ -75,3 +75,15 @@ quota:
   limits:
     cpu: "4"
     memory: 4Gi
+
+# OpenShift specific configuration
+openshift:
+  enabled: false
+  route:
+    tls:
+      enabled: true
+  build:
+    enabled: true
+    git:
+      uri: https://github.com/your-repo/eglh.git
+      branch: main

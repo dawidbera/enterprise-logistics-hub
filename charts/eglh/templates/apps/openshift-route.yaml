@@ -1,0 +1,21 @@
+{{- if .Values.openshift.enabled -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: logistics-api
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: logistics-api
+spec:
+  to:
+    kind: Service
+    name: logistics-api
+    weight: 100
+  port:
+    targetPort: 8080
+  {{- if .Values.openshift.route.tls.enabled }}
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Allow
+  {{- end }}
+{{- end -}}

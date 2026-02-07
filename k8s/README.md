@@ -40,6 +40,20 @@ The `deploy-helm.sh` script automates this, but the manual order is:
 - **Probes**: Liveness/Readiness probes configured with safe timeouts.
 - **CronJob**: A scheduled job (`db-cleanup`) runs every hour to remove completed orders.
 
+## OpenShift Migration (Phase 3)
+
+The manifests have been enhanced to support **Red Hat OpenShift** environments, focusing on security and native platform features.
+
+### 1. Security Context Constraints (SCC)
+To comply with the `restricted-v2` profile, the following changes were made:
+- **Dynamic UID**: Removed hardcoded `runAsUser` (e.g., 185, 1001) to allow OpenShift to assign a UID from the namespace's allocated range.
+- **Tightened Security**: Added `allowPrivilegeEscalation: false`, `capabilities: {drop: ["ALL"]}`, and `seccompProfile: {type: RuntimeDefault}` to all containers.
+- **Non-Root enforcement**: Maintained `runAsNonRoot: true` across all workloads.
+
+### 2. Native OpenShift Objects
+- **Routes**: Added `openshift-route.yaml` for exposing the API with **Edge TLS termination**.
+- **Builds**: Added `openshift-build.yaml` defining `ImageStreams` and `BuildConfigs` for Source-to-Image (S2I) workflows directly from Git.
+
 ## Technical Lessons Learned (Gotchas)
 
 ### Kubernetes Environment Variable Collision

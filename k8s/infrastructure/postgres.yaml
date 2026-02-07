@@ -60,10 +60,15 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 999 # Standard postgres UID in alpine image
         fsGroup: 999
       containers:
       - name: postgres
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
         image: postgres:15-alpine
         ports:
         - containerPort: 5432

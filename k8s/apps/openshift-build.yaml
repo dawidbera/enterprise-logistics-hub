@@ -1,0 +1,70 @@
+# OpenShift Build Configuration (S2I / Git-to-Image)
+# This allows OpenShift to build the applications directly from the source code.
+
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: logistics-api
+  namespace: logistics
+spec:
+  lookupPolicy:
+    local: true
+
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: logistics-api
+  namespace: logistics
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/dawidbera/enterprise-logistics-hub.git # Replace with actual repo
+    contextDir: enterprise-logistics-hub/logistics-api
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: java:17
+        namespace: openshift
+  output:
+    to:
+      kind: ImageStreamTag
+      name: logistics-api:latest
+
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: route-worker
+  namespace: logistics
+spec:
+  lookupPolicy:
+    local: true
+
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: route-worker
+  namespace: logistics
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/dawidbera/enterprise-logistics-hub.git # Replace with actual repo
+    contextDir: enterprise-logistics-hub/route-worker
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        name: java:17
+        namespace: openshift
+  output:
+    to:
+      kind: ImageStreamTag
+      name: route-worker:latest

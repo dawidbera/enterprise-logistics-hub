@@ -28,13 +28,30 @@ spec:
       serviceAccountName: api-service-account
       securityContext:
         runAsNonRoot: true
+        {{- if not .Values.openshift.enabled }}
         runAsUser: 185
+        {{- else }}
+        seccompProfile:
+          type: RuntimeDefault
+        {{- end }}
       initContainers:
       - name: wait-for-infrastructure
+        {{- if .Values.openshift.enabled }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        {{- end }}
         image: busybox:1.36
         command: ['sh', '-c', "until nc -zv postgres 5432 && nc -zv eglh-rabbitmq 5672; do echo waiting for infra; sleep 2; done"]
       containers:
       - name: logistics-api
+        {{- if .Values.openshift.enabled }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+        {{- end }}
         image: {{ .Values.apps.logisticsApi.image | quote }}
         imagePullPolicy: IfNotPresent
         ports:
