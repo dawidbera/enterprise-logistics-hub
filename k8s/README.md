@@ -51,6 +51,11 @@ Kubernetes automatically injects environment variables for every Service in a Na
 *   **Discovery**: RabbitMQ Mnesia database depends on a stable hostname.
 *   **Solution**: Always use a **StatefulSet** for RabbitMQ to ensure a stable hostname (`rabbitmq-0`) and set `RABBITMQ_NODENAME` (e.g., `rabbit@localhost`).
 
+### Erlang Cookie Permissions
+*   **The Issue**: RabbitMQ fails to start with `CrashLoopBackOff` and error: `Cookie file /var/lib/rabbitmq/.erlang.cookie must be accessible by owner only`.
+*   **The Cause**: Erlang is extremely strict about permissions (must be `600`). Kubernetes volume mounts sometimes set default permissions (like `644`) that are too broad.
+*   **The Fix**: Use `fsGroup: 1001` in the `securityContext` to ensure the volume is owned by the correct group. In case of persistent permission corruption on a local cluster (like k3s), deleting the PVC/Namespace and redeploying is often necessary to reset the volume state.
+
 ## Verification Results
 
 ### Stress Test (50 orders)

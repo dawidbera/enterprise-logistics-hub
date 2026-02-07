@@ -7,4 +7,4 @@ metadata:
 data:
   DB_HOST: "postgres"
   DB_NAME: "logistics_db"
-  RABBITMQ_HOST: "rabbitmq"
+  RABBITMQ_HOST: "eglh-rabbitmq"

@@ -16,7 +16,7 @@ stringData:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rabbitmq
+  name: eglh-rabbitmq
   namespace: logistics
 spec:
   # clusterIP: None makes it a Headless Service, providing stable DNS for StatefulSet
@@ -33,10 +33,10 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: rabbitmq
+  name: eglh-rabbitmq
   namespace: logistics
 spec:
-  serviceName: "rabbitmq"
+  serviceName: "eglh-rabbitmq"
   replicas: 1
   selector:
     matchLabels:
