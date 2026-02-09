@@ -1,6 +1,6 @@
 # Kubernetes Orchestration (EGLH)
 
-This directory contains manifests for deploying EGLH to a Kubernetes cluster. The configuration covers **100% of the CKAD** exam scope and is optimized for production-like environments (k3s, OpenShift).
+This directory contains manifests for deploying EGLH to a Kubernetes cluster. The configuration is optimized for production-like environments (k3s, OpenShift) and follows industry-standard deployment patterns.
 
 ## Structure
 - `config/`: Namespace setup, ResourceQuotas, shared ConfigMaps.
@@ -18,12 +18,33 @@ The `deploy-helm.sh` script automates this, but the manual order is:
 4.  **Applications**: `kubectl apply -f k8s/apps/`
 5.  **Jobs**: `kubectl apply -f k8s/jobs/`
 
-## CKAD Features Implemented
+## Kubernetes Implementation Details
 
 ### 1. Workload Scheduling & State
 - **StatefulSets**: PostgreSQL and RabbitMQ use stable network identities and PVCs.
 - **Init Containers**: Apps wait for infrastructure availability using `nc` checks.
 - **HPA**: `route-worker` scales based on CPU utilization (verified by Stress Test).
+
+#### Infrastructure Startup Sequence
+```mermaid
+sequenceDiagram
+    participant K8s as Kubernetes Controller
+    participant Init as Init Container (wait-for-infra)
+    participant DB as PostgreSQL
+    participant App as logistics-api
+    
+    K8s->>Init: Start Pod
+    loop Check Connectivity
+        Init->>DB: nc -zv postgres 5432
+        Note right of DB: Connection Refused (Starting up...)
+        Init-->>Init: sleep 2s
+    end
+    DB-->>Init: Connection Successful
+    Init->>K8s: Exit 0 (Success)
+    K8s->>App: Start Main Container
+    App->>DB: Hibernate Connection
+    Note over App: API is READY
+```
 
 ### 2. Configuration & Security
 - **Namespace Isolation**: All resources are deployed in the `logistics` namespace.
@@ -41,6 +62,8 @@ The `deploy-helm.sh` script automates this, but the manual order is:
 - **CronJob**: A scheduled job (`db-cleanup`) runs every hour to remove completed orders.
 
 ## OpenShift Migration (Phase 3)
+
+![OpenShift Console](../docs/OpenShift-screenshot.png)
 
 The manifests have been enhanced to support **Red Hat OpenShift** environments, focusing on security and native platform features.
 
@@ -83,6 +106,19 @@ Kubernetes automatically injects environment variables for every Service in a Na
 *   **The Issue**: BuildConfig failed with `InvalidContextDirectory`.
 *   **The Cause**: The `contextDir` in a `BuildConfig` is relative to the repository root. 
 *   **The Fix**: Ensure the `contextDir` matches the actual folder structure in Git (e.g., use `logistics-api` instead of `enterprise-logistics-hub/logistics-api` if the former is at the root).
+
+### Build Memory Limits (Quarkus)
+*   **The Issue**: Build failed with `java.lang.OutOfMemoryError: GC overhead limit exceeded`.
+*   **The Cause**: Quarkus augmentation during Maven build is memory-intensive. OpenShift Sandbox default limits are often too low.
+*   **The Fix**: Explicitly set `resources.limits.memory: 2Gi` in the `BuildConfig`.
+
+### GitOps vs. CI/CD (ArgoCD & OpenShift)
+*   **The Concept**: In this project, ArgoCD manages the **infrastructure state** (Deployments, Services, BuildConfigs). However, the **code build** is triggered by OpenShift (CI).
+*   **The Workflow**: 
+    1. `git push` code changes.
+    2. Run `oc start-build` (or use a Webhook) to build the new image.
+    3. OpenShift's `ImageStream` trigger automatically updates the `Deployment` to use the new image.
+    4. ArgoCD ensures the overall configuration remains consistent.
 
 ## Verification Results
 

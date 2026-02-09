@@ -1,6 +1,6 @@
 # Enterprise Logistics Hub (EGLH)
 
-A production-like logistics system for processing transport orders, built with Java (Quarkus) and Kubernetes. This project serves as a comprehensive **CKAD (Certified Kubernetes Application Developer)** study case, covering 100% of the exam scope.
+A production-like logistics system for processing transport orders, built with Java (Quarkus) and Kubernetes. This project demonstrates advanced cloud-native orchestration and Kubernetes best practices, featuring a production-grade infrastructure setup.
 
 ## Core Architecture
 - **`logistics-api`**: Entry point for receiving orders.
@@ -17,6 +17,7 @@ graph TD
     RMQ -- "Consume Message" --> Worker[route-worker]
     Worker -- "Simulate Heavy Work" --> Worker
     Worker -- "Update Status (COMPLETED)" --> DB
+    Client -- "GET /orders" --> API
     Client -- "GET /orders/{id}" --> API
     API -- "Read Status" --> DB
 ```
@@ -61,8 +62,10 @@ The project is structured to support GitOps workflows using ArgoCD:
   ```
 - **Enterprise Ready**: Manifests are compliant with OpenShift's `restricted-v2` SCC profile.
 
-## CKAD Mastery Features
-This project implements advanced Kubernetes concepts required for the CKAD exam and real-world production systems:
+![OpenShift Console](docs/OpenShift-screenshot.png)
+
+## Cloud-Native Orchestration Features
+This project implements advanced Kubernetes concepts essential for resilient and secure production systems:
 
 - **State & Persistence**: StatefulSets, PersistentVolumeClaims, Headless Services.
 - **Security**: NetworkPolicies, ServiceAccounts, RBAC (Roles/RoleBindings), SecurityContext (Non-root), Namespace Isolation.
